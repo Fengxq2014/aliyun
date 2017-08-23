@@ -8,28 +8,20 @@ import (
 
 	"encoding/json"
 
+	"reflect"
+
 	"github.com/Fengxq2014/aliyun-signature/signature"
 	"github.com/google/go-querystring/query"
 	"github.com/goroom/rand"
 )
 
-// AliyunVod 公共参数
-type AliyunVod struct {
-	Format           string //返回值的类型，支持JSON与XML
-	Version          string //API版本号，为日期形式：YYYY-MM-DD，本版本对应为2017-03-21
-	AccessKeyID      string `url:"AccessKeyId"` //阿里云颁发给用户的访问服务所用的密钥ID
-	SignatureMethod  string //签名方式，目前支持HMAC-SHA1
-	Timestamp        string //请求的时间戳。日期格式按照ISO8601标准表示，并需要使用UTC时间。格式为：YYYY-MM-DDThh:mm:ssZ例如，2017-3-29T12:00:00Z(为北京时间2017年3月29日的20点0分0秒
-	SignatureVersion string //签名算法版本，目前版本是1.0
-	SignatureNonce   string //唯一随机数，用于防止网络重放攻击。用户在不同请求间要使用不同的随机数值
-}
-
 // NewAliyunVod 初始化一个新的vod client
-func NewAliyunVod(accessKeyID string) (*AliyunVod, error) {
+func NewAliyunVod(accessKeyID, accessSecret string) (*AliyunVod, error) {
 	var a AliyunVod
 	a.Format = "JSON"
 	a.Version = "2017-03-21"
 	a.AccessKeyID = accessKeyID
+	a.AccessSecret = accessSecret
 	a.SignatureMethod = "HMAC-SHA1"
 	a.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	a.SignatureVersion = "1.0"
@@ -37,23 +29,8 @@ func NewAliyunVod(accessKeyID string) (*AliyunVod, error) {
 	return &a, nil
 }
 
-// PlayAuthResposeEntity PlayAuth返回
-type PlayAuthResposeEntity struct {
-	RequestID string `json:"RequestId"`
-	VideoMeta videoDetail
-	PlayAuth  string
-}
-
-type videoDetail struct {
-	VideoID  string `json:"VideoId"`
-	Title    string
-	Duration float32
-	CoverURL string
-	Status   string
-}
-
 // GetVideoPlayAuth 获取视频播放凭证
-func (avod *AliyunVod) GetVideoPlayAuth(videoID, accessSecret string) (result PlayAuthResposeEntity, err error) {
+func (avod *AliyunVod) GetVideoPlayAuth(videoID string) (result PlayAuthResposeEntity, err error) {
 	type requestEntity struct {
 		AliyunVod
 		Action  string
@@ -61,7 +38,63 @@ func (avod *AliyunVod) GetVideoPlayAuth(videoID, accessSecret string) (result Pl
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "GetVideoPlayAuth", VideoID: videoID}
 	v, _ := query.Values(req)
-	url := signature.ComposeURL(v, accessSecret, "http://vod.cn-shanghai.aliyuncs.com")
+	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
+	err = getRespOrError(url, &result, "PlayAuth")
+	return
+}
+
+// CreateUploadVideo 获取视频上传地址和凭证
+func (avod *AliyunVod) CreateUploadVideo(title, fileName, fileSize, description, coverURL, tags string, cateID int64) (result CreateUploadVideoResposeEntity, err error) {
+	type requestEntity struct {
+		AliyunVod
+		Action      string
+		Title       string
+		FileName    string
+		FileSize    string `url:",omitempty"`
+		Description string `url:",omitempty"`
+		CoverURL    string `url:",omitempty"`
+		CateID      int64  `url:"CateId,omitempty"`
+		Tags        string `url:",omitempty"`
+	}
+	req := requestEntity{AliyunVod: *avod, Action: "CreateUploadVideo", Title: title, FileName: fileName, FileSize: fileSize, Description: description, CoverURL: coverURL, CateID: cateID, Tags: tags}
+	v, _ := query.Values(req)
+	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
+
+	err = getRespOrError(url, &result, "UploadAuth")
+	return
+}
+
+// RefreshUploadVideo 刷新视频上传凭证
+func (avod *AliyunVod) RefreshUploadVideo(videoID string) (result CreateUploadVideoResposeEntity, err error) {
+	type requestEntity struct {
+		AliyunVod
+		Action  string
+		VideoID string `url:"VideoId"`
+	}
+	req := requestEntity{AliyunVod: *avod, Action: "RefreshUploadVideo", VideoID: videoID}
+	v, _ := query.Values(req)
+	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
+
+	err = getRespOrError(url, &result, "UploadAuth")
+	return
+}
+
+// CreateUploadImage 获取图片上传地址和凭证
+func (avod *AliyunVod) CreateUploadImage(imageType ImageType, imageExt ImageExt) (result CreateUploadImageResposeEntity, err error) {
+	type requestEntity struct {
+		AliyunVod
+		ImageType string
+		ImageExt  string `url:",omitempty"`
+	}
+	req := requestEntity{AliyunVod: *avod, ImageType: imageType.String(), ImageExt: imageExt.String()}
+	v, _ := query.Values(req)
+	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
+
+	err = getRespOrError(url, &result, "UploadAuth")
+	return
+}
+
+func getRespOrError(url string, result interface{}, validName string) (err error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return
@@ -70,13 +103,44 @@ func (avod *AliyunVod) GetVideoPlayAuth(videoID, accessSecret string) (result Pl
 	if err != nil {
 		return
 	}
-	err = json.Unmarshal(b,&result)
+	err = json.Unmarshal(b, result)
 	if err != nil {
 		return
 	}
-	if result.PlayAuth == ""{
-		err = fmt.Errorf("%v",string(b))
+	v := reflect.ValueOf(result)
+
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+	}
+	validField := v.FieldByName(validName)
+	if isEmptyValue(validField) {
+		err = fmt.Errorf("%v", string(b))
 		return
 	}
 	return
+}
+
+func isEmptyValue(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return v.IsNil()
+	}
+	if v.Type() == reflect.TypeOf(time.Time{}) {
+		return v.Interface().(time.Time).IsZero()
+	}
+
+	return false
 }
