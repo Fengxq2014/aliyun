@@ -16,7 +16,7 @@ import (
 )
 
 // NewAliyunVod 初始化一个新的vod client
-func NewAliyunVod(accessKeyID, accessSecret string) (*AliyunVod, error) {
+func NewAliyunVod(accessKeyID, accessSecret string) (*AliyunVod) {
 	var a AliyunVod
 	a.Format = "JSON"
 	a.Version = "2017-03-21"
@@ -26,7 +26,7 @@ func NewAliyunVod(accessKeyID, accessSecret string) (*AliyunVod, error) {
 	a.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	a.SignatureVersion = "1.0"
 	a.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
-	return &a, nil
+	return &a
 }
 
 // GetVideoPlayAuth 获取视频播放凭证
