@@ -16,7 +16,7 @@ import (
 )
 
 // NewAliyunVod 初始化一个新的vod client
-func NewAliyunVod(accessKeyID, accessSecret string) (*AliyunVod) {
+func NewAliyunVod(accessKeyID, accessSecret string) *AliyunVod {
 	var a AliyunVod
 	a.Format = "JSON"
 	a.Version = "2017-03-21"
@@ -83,10 +83,11 @@ func (avod *AliyunVod) RefreshUploadVideo(videoID string) (result CreateUploadVi
 func (avod *AliyunVod) CreateUploadImage(imageType ImageType, imageExt ImageExt) (result CreateUploadImageResposeEntity, err error) {
 	type requestEntity struct {
 		AliyunVod
+		Action    string
 		ImageType string
 		ImageExt  string `url:",omitempty"`
 	}
-	req := requestEntity{AliyunVod: *avod, ImageType: imageType.String(), ImageExt: imageExt.String()}
+	req := requestEntity{AliyunVod: *avod, Action: "CreateUploadImage", ImageType: imageType.String(), ImageExt: imageExt.String()}
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 

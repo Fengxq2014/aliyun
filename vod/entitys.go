@@ -35,19 +35,27 @@ type videoDetail struct {
 	Status   string
 }
 
+// RefreshUploadVideoResposeEntity 刷新视频上传凭证返回
 type RefreshUploadVideoResposeEntity struct {
 	RequestID  string `json:"RequestId"`
 	UploadAuth string
 }
 
+// ImageType 图片类型
 type ImageType uint
+// ImageExt 图片文件扩展名
 type ImageExt uint
 
 const (
+	// Cover ImageType 封面
 	Cover ImageType = iota
+	// Watermark ImageType 水印
 	Watermark
+	// Png ImageExt
 	Png ImageExt = iota
+	// Jpg ImageExt
 	Jpg
+	// Jpeg ImageExt
 	Jpeg
 )
 
@@ -71,6 +79,7 @@ func (t ImageExt) String() string {
 	}
 }
 
+// CreateUploadImageResposeEntity 获取图片上传地址和凭证返回
 type CreateUploadImageResposeEntity struct{
 	RequestID  string `json:"RequestId"`
 	UploadAddress string
