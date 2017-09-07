@@ -10,7 +10,7 @@ import (
 )
 
 // GetRespOrError 用Get方式获取返回
-func GetRespOrError(url string, result interface{}, validName string) (err error) {
+func GetRespOrError(url string, result interface{}, validName string, validData interface{}) (err error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return
@@ -32,9 +32,12 @@ func GetRespOrError(url string, result interface{}, validName string) (err error
 		v = v.Elem()
 	}
 	validField := v.FieldByName(validName)
-	if isEmptyValue(validField) {
+	if validData != nil && validField.Interface() != validData {
 		err = fmt.Errorf("%v", string(b))
 		return
+	}
+	if isEmptyValue(validField) {
+		err = fmt.Errorf("%v", string(b))
 	}
 	return
 }

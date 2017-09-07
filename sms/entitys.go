@@ -19,3 +19,27 @@ type SendSmsResposeEntity struct {
 	Message   string
 	BizID     string `json:"BizId"`
 }
+
+// QuerySendDetailsResposeEntity 短信查询返回
+type QuerySendDetailsResposeEntity struct{
+	RequestID string `json:"RequestId"`
+	Code string
+	Message string
+	TotalCount int
+	SmsSendDetailDTOs smsSendDetailDTO
+}
+
+type smsSendDetailDTO struct{
+	SmsSendDetailDTO []smsSendDetail
+}
+
+type smsSendDetail struct{
+	PhoneNum string
+	SendStatus int
+	ErrCode string
+	TemplateCode string
+	Content string
+	SendDate string
+	ReceiveDate string
+	OutID string `json:"OutId"`
+}

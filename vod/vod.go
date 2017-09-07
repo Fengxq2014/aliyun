@@ -19,7 +19,6 @@ func NewAliyunVod(accessKeyID, accessSecret string) *AliyunVod {
 	a.SignatureMethod = "HMAC-SHA1"
 	a.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 	a.SignatureVersion = "1.0"
-	a.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
 	return &a
 }
 
@@ -31,9 +30,10 @@ func (avod *AliyunVod) GetVideoPlayAuth(videoID string) (result PlayAuthResposeE
 		VideoID string `url:"VideoId"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "GetVideoPlayAuth", VideoID: videoID}
+	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
-	err = util.GetRespOrError(url, &result, "PlayAuth")
+	err = util.GetRespOrError(url, &result, "PlayAuth", nil)
 	return
 }
 
@@ -51,10 +51,11 @@ func (avod *AliyunVod) CreateUploadVideo(title, fileName, fileSize, description,
 		Tags        string `url:",omitempty"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "CreateUploadVideo", Title: title, FileName: fileName, FileSize: fileSize, Description: description, CoverURL: coverURL, CateID: cateID, Tags: tags}
+	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 
-	err = util.GetRespOrError(url, &result, "UploadAuth")
+	err = util.GetRespOrError(url, &result, "UploadAuth", nil)
 	return
 }
 
@@ -66,10 +67,11 @@ func (avod *AliyunVod) RefreshUploadVideo(videoID string) (result CreateUploadVi
 		VideoID string `url:"VideoId"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "RefreshUploadVideo", VideoID: videoID}
+	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 
-	err = util.GetRespOrError(url, &result, "UploadAuth")
+	err = util.GetRespOrError(url, &result, "UploadAuth", nil)
 	return
 }
 
@@ -82,9 +84,10 @@ func (avod *AliyunVod) CreateUploadImage(imageType ImageType, imageExt ImageExt)
 		ImageExt  string `url:",omitempty"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "CreateUploadImage", ImageType: imageType.String(), ImageExt: imageExt.String()}
+	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 
-	err = util.GetRespOrError(url, &result, "UploadAuth")
+	err = util.GetRespOrError(url, &result, "UploadAuth", nil)
 	return
 }
