@@ -12,9 +12,13 @@ type AliyunVod struct {
 	AccessSecret     string `url:"-"`
 }
 
+type baseResposeEntity struct {
+	RequestID string `json:"RequestId"`
+}
+
 // CreateUploadVideoResposeEntity CreateUploadVideo接口返回信息
 type CreateUploadVideoResposeEntity struct {
-	RequestID     string `json:"RequestId"`
+	baseResposeEntity
 	VideoID       string `json:"VideoId"`
 	UploadAddress string //上传地址
 	UploadAuth    string //上传凭证
@@ -22,7 +26,7 @@ type CreateUploadVideoResposeEntity struct {
 
 // PlayAuthResposeEntity PlayAuth返回
 type PlayAuthResposeEntity struct {
-	RequestID string `json:"RequestId"`
+	baseResposeEntity
 	VideoMeta videoDetail
 	PlayAuth  string
 }
@@ -37,52 +41,103 @@ type videoDetail struct {
 
 // RefreshUploadVideoResposeEntity 刷新视频上传凭证返回
 type RefreshUploadVideoResposeEntity struct {
-	RequestID  string `json:"RequestId"`
+	baseResposeEntity
 	UploadAuth string
 }
 
 // ImageType 图片类型
-type ImageType uint
+type ImageType string
+
 // ImageExt 图片文件扩展名
-type ImageExt uint
+type ImageExt string
 
 const (
 	// Cover ImageType 封面
-	Cover ImageType = iota
+	Cover ImageType = "cover"
 	// Watermark ImageType 水印
-	Watermark
+	Watermark = "watermark"
 	// Png ImageExt
-	Png ImageExt = iota
+	Png ImageExt = "png"
 	// Jpg ImageExt
-	Jpg
+	Jpg = "jpg"
 	// Jpeg ImageExt
-	Jpeg
+	Jpeg = "jpeg"
 )
 
-func (t ImageType) String() string {
-	if t == Cover {
-		return "cover"
-	}
-	return "watermark"
-}
-
-func (t ImageExt) String() string {
-	switch t {
-	case Png:
-		return "png"
-	case Jpg:
-		return "jpg"
-	case Jpeg:
-		return "jpeg"
-	default:
-		return "png"
-	}
-}
-
 // CreateUploadImageResposeEntity 获取图片上传地址和凭证返回
-type CreateUploadImageResposeEntity struct{
-	RequestID  string `json:"RequestId"`
+type CreateUploadImageResposeEntity struct {
+	baseResposeEntity
 	UploadAddress string
-	UploadAuth string
-	ImageURL string
+	UploadAuth    string
+	ImageURL      string
+}
+
+// GetPlayInfoResposeEntity 获取视频播放地址返回
+type GetPlayInfoResposeEntity struct {
+	baseResposeEntity
+	VideoBase    videoBase
+	PlayInfoList playInfoList
+}
+type videoBase struct {
+	VideoID      string `json:"VideoId"`
+	Title        string
+	Duration     string
+	CoverURL     string
+	Status       string
+	CreationTime string
+	MediaType    string
+}
+type playInfoList struct {
+	PlayInfo []playInfo
+}
+type playInfo struct {
+	Bitrate    string
+	Definition string
+	Duration   string
+	Encrypt    int
+	PlayURL    string
+	Format     string
+	Fps        string
+	Size       int //视频流大小，单位Byte
+	Width      int
+	Height     int
+}
+
+// GetVideoInfoResposeEntity 获取视频信息返回
+type GetVideoInfoResposeEntity struct {
+	baseResposeEntity
+	Video video
+}
+type video struct {
+	videoDetail
+	Description  string
+	CreationTime string
+	Size         int
+	Snapshots    snapshot
+	CateID       int `json:"CateId"`
+	CateName     string
+	Tags         string
+}
+type snapshot struct {
+	Snapshot []string
+}
+
+// GetVideoListResposeEntity 获取视频信息列表返回
+type GetVideoListResposeEntity struct {
+	baseResposeEntity
+	VideoList videoList
+	Total     int
+}
+type videoList struct{
+	Video []video
+}
+
+// UpdateVideoInfoResposeEntity 修改视频信息返回
+type UpdateVideoInfoResposeEntity struct{
+	baseResposeEntity
+}
+
+// DeleteVideoResposeEntity 删除视频返回
+type DeleteVideoResposeEntity struct{
+	baseResposeEntity
 }

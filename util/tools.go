@@ -1,12 +1,12 @@
 package util
 
 import (
-	"time"
-	"fmt"
-	"reflect"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"time"
 )
 
 // GetRespOrError 用Get方式获取返回
@@ -19,19 +19,15 @@ func GetRespOrError(url string, result interface{}, validName string, validData 
 	if err != nil {
 		return
 	}
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("%v", string(b))
+		return
+	}
 	err = json.Unmarshal(b, result)
 	if err != nil {
 		return
 	}
-	v := reflect.ValueOf(result)
-
-	for v.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return
-		}
-		v = v.Elem()
-	}
-	validField := v.FieldByName(validName)
+	validField := getValue(result, validName)
 	if validData != nil && validField.Interface() != validData {
 		err = fmt.Errorf("%v", string(b))
 		return
@@ -62,4 +58,33 @@ func isEmptyValue(v reflect.Value) bool {
 	}
 
 	return false
+}
+
+func getValue(field interface{}, validName string) reflect.Value {
+	v := reflect.ValueOf(field)
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			break
+		}
+		v = v.Elem()
+	}
+	validField := v.FieldByName(validName)
+	if !validField.IsValid() {
+		for i := 0; i < v.NumField(); i++ {
+			tempField := v.Field(i)
+			for tempField.Kind() == reflect.Ptr {
+				if tempField.IsNil() {
+					break
+				}
+				tempField = v.Field(i).Elem()
+			}
+			if tempField.Kind() == reflect.Struct {
+				iLoopField := tempField.FieldByName(validName)
+				if iLoopField.IsValid() {
+					validField = iLoopField
+				}
+			}
+		}
+	}
+	return validField
 }
