@@ -16,6 +16,7 @@ func GetRespOrError(url string, result interface{}, validName string, validData 
 		return
 	}
 	b, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	if err != nil {
 		return
 	}
