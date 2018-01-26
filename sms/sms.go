@@ -6,7 +6,7 @@ import (
 	"github.com/Fengxq2014/aliyun-signature/signature"
 	"github.com/Fengxq2014/aliyun/util"
 	"github.com/google/go-querystring/query"
-	"github.com/goroom/rand"
+	rd "github.com/goroom/rand"
 )
 
 // NewAliyunSms 初始化一个新的sms client
@@ -42,7 +42,8 @@ func (asms *AliyunSms) SendSms(phoneNumbers, signName, templateCode, templatePar
 		OutID           string `url:"OutId,omitempty"`
 	}
 	req := requestEntity{AliyunSms: *asms, Action: "SendSms", RegionID: "cn-hangzhou", PhoneNumbers: phoneNumbers, SignName: signName, TemplateCode: templateCode, TemplateParam: templateParam, SmsUpExtendCode: smsUpExtendCode, OutID: outID}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, asms.AccessSecret, "http://dysmsapi.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "Code", "OK")
@@ -55,18 +56,19 @@ func (asms *AliyunSms) SendSms(phoneNumbers, signName, templateCode, templatePar
 // sendDate 短信发送日期格式yyyyMMdd,支持最近30天记录查询
 // pageSize 页大小Max=50
 // currentPage 当前页码
-func (asms *AliyunSms) QuerySendDetails(phoneNumber,bizID,sendDate string,pageSize,currentPage int)(result QuerySendDetailsResposeEntity,err error) {
+func (asms *AliyunSms) QuerySendDetails(phoneNumber, bizID, sendDate string, pageSize, currentPage int) (result QuerySendDetailsResposeEntity, err error) {
 	type reequestionEntity struct {
 		AliyunSms
-		Action          string
+		Action      string
 		PhoneNumber string
 		BizID       string `url:"BizId,omitempty"`
 		SendDate    string
 		PageSize    int
 		CurrentPage int
 	}
-	req:=reequestionEntity{AliyunSms:*asms,Action:"QuerySendDetails", PhoneNumber:phoneNumber,BizID:bizID,SendDate:sendDate,PageSize:pageSize,CurrentPage:currentPage}
-	req.SignatureNonce=rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	req := reequestionEntity{AliyunSms: *asms, Action: "QuerySendDetails", PhoneNumber: phoneNumber, BizID: bizID, SendDate: sendDate, PageSize: pageSize, CurrentPage: currentPage}
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, asms.AccessSecret, "http://dysmsapi.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "Code", "OK")

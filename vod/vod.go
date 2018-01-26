@@ -6,7 +6,7 @@ import (
 	"github.com/Fengxq2014/aliyun-signature/signature"
 	"github.com/Fengxq2014/aliyun/util"
 	"github.com/google/go-querystring/query"
-	"github.com/goroom/rand"
+	rd "github.com/goroom/rand"
 )
 
 // NewAliyunVod 初始化一个新的vod client
@@ -35,7 +35,8 @@ func (avod *AliyunVod) GetPlayInfo(videoID, formats, authTimeout string) (result
 		AuthTimeout string `url:",omitempty"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "GetPlayInfo", VideoID: videoID, Formats: formats, AuthTimeout: authTimeout}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "VideoBase", nil)
@@ -51,7 +52,8 @@ func (avod *AliyunVod) GetVideoPlayAuth(videoID string) (result PlayAuthResposeE
 		VideoID string `url:"VideoId"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "GetVideoPlayAuth", VideoID: videoID}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "PlayAuth", nil)
@@ -67,7 +69,8 @@ func (avod *AliyunVod) GetVideoInfo(videoID string) (result GetVideoInfoResposeE
 		VideoID string `url:"VideoId"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "GetVideoInfo", VideoID: videoID}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "Video", nil)
@@ -96,7 +99,8 @@ func (avod *AliyunVod) GetVideoList(status, startTime, endTime, sortBy string, c
 		PageSize  int    `url:",omitempty"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "GetVideoList", Status: status, StartTime: startTime, EndTime: endTime, SortBy: sortBy, CateID: cateID, PageNo: pageNo, PageSize: pageSize}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "RequestID", nil)
@@ -122,7 +126,8 @@ func (avod *AliyunVod) UpdateVideoInfo(videoID, title, description, coverURL, ta
 		Tags        string `url:",omitempty"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "UpdateVideoInfo", VideoID: videoID, Title: title, Description: description, CoverURL: coverURL, Tags: tags, CateID: cateID}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "RequestID", nil)
@@ -138,7 +143,8 @@ func (avod *AliyunVod) DeleteVideo(videoIds string) (result DeleteVideoResposeEn
 		VideoIds string
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "DeleteVideo", VideoIds: videoIds}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 	err = util.GetRespOrError(url, &result, "RequestID", nil)
@@ -159,7 +165,8 @@ func (avod *AliyunVod) CreateUploadVideo(title, fileName, fileSize, description,
 		Tags        string `url:",omitempty"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "CreateUploadVideo", Title: title, FileName: fileName, FileSize: fileSize, Description: description, CoverURL: coverURL, CateID: cateID, Tags: tags}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 
@@ -175,7 +182,8 @@ func (avod *AliyunVod) RefreshUploadVideo(videoID string) (result CreateUploadVi
 		VideoID string `url:"VideoId"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "RefreshUploadVideo", VideoID: videoID}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 
@@ -192,7 +200,8 @@ func (avod *AliyunVod) CreateUploadImage(imageType ImageType, imageExt ImageExt)
 		ImageExt  string `url:",omitempty"`
 	}
 	req := requestEntity{AliyunVod: *avod, Action: "CreateUploadImage", ImageType: string(imageType), ImageExt: string(imageExt)}
-	req.SignatureNonce = rand.String(16, rand.RST_NUMBER|rand.RST_LOWER)
+	rand := rd.GetRand()
+	req.SignatureNonce = rand.String(16, rd.RST_NUMBER|rd.RST_LOWER)
 	v, _ := query.Values(req)
 	url := signature.ComposeURL(v, avod.AccessSecret, "http://vod.cn-shanghai.aliyuncs.com")
 
